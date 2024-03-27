@@ -1,0 +1,26 @@
+﻿@model tictactoeweb.Models.AuthorizationViewModel;
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In</title>
+    <link rel="stylesheet" href="~/css/login-style.css">
+</head>
+<body>
+    <section class="main-container">
+        <div class="container d-flex">
+            <div class="main-form">
+                <p>Log In</p>
+                <form asp-controller="Authorization" asp-action="LogIn" method="post">
+                    <input type="text" placeholder="Username" asp-for="Username">
+                    <input type="text" placeholder="Password" asp-for="Password">
+                    <input type="submit" value="Log In">
+                    <a asp-action="Register">Register</a>
+                </form>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

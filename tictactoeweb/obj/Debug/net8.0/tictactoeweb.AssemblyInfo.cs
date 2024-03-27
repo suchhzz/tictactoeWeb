@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("tictactoeweb")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+08f6384c1fe02769f89c42c970a4ae3630cf3aae")]
 [assembly: System.Reflection.AssemblyProductAttribute("tictactoeweb")]
 [assembly: System.Reflection.AssemblyTitleAttribute("tictactoeweb")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

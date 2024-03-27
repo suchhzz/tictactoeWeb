@@ -145,3 +145,4 @@ C:\Users\jenje\source\repos\tictactoeweb\tictactoeweb\obj\Debug\net8.0\refint\ti
 C:\Users\jenje\source\repos\tictactoeweb\tictactoeweb\obj\Debug\net8.0\tictactoeweb.pdb
 C:\Users\jenje\source\repos\tictactoeweb\tictactoeweb\obj\Debug\net8.0\tictactoeweb.genruntimeconfig.cache
 C:\Users\jenje\source\repos\tictactoeweb\tictactoeweb\obj\Debug\net8.0\ref\tictactoeweb.dll
+C:\Users\jenje\source\repos\tictactoeweb\tictactoeweb\obj\Debug\net8.0\tictactoeweb.sourcelink.json

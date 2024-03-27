@@ -1,9 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using tictactoeweb.Context;
 using tictactoeweb.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddDbContext<UserDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("UsersConnection"));
+});
 
 builder.Services.AddSignalR();
 

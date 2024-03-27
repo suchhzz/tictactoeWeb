@@ -5,6 +5,18 @@
       "PackagePath": "staticwebassets\\tictactoeweb.bundle.scp.css"
     },
     {
+      "Id": "C:\\Users\\jenje\\source\\repos\\tictactoeweb\\tictactoeweb\\wwwroot\\css\\index.css",
+      "PackagePath": "staticwebassets\\css\\index.css"
+    },
+    {
+      "Id": "C:\\Users\\jenje\\source\\repos\\tictactoeweb\\tictactoeweb\\wwwroot\\css\\login-style.css",
+      "PackagePath": "staticwebassets\\css\\login-style.css"
+    },
+    {
+      "Id": "C:\\Users\\jenje\\source\\repos\\tictactoeweb\\tictactoeweb\\wwwroot\\css\\register-style.css",
+      "PackagePath": "staticwebassets\\css\\register-style.css"
+    },
+    {
       "Id": "C:\\Users\\jenje\\source\\repos\\tictactoeweb\\tictactoeweb\\wwwroot\\css\\site.css",
       "PackagePath": "staticwebassets\\css\\site.css"
     },
