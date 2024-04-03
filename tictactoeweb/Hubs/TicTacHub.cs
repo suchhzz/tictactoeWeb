@@ -5,14 +5,14 @@ namespace tictactoeweb.Hubs
 {
     public class TicTacHub : Hub
     {
-        public static int Id { get; set; } = 1;
+        public static int Id { get; set; } = 0;
         public static int UsersOnline { get; set; } = 0;
         public static int UsersAll { get; set; } = 0;
         public static int MoveCounter { get; set; } = 0;
         public async Task SetUserId()
         {
-            await Clients.Caller.SendAsync("GetUserId", Id);
             Id++;
+            await Clients.Caller.SendAsync("GetUserId", Id);
         }
 
         public int passMovePlayerId { get; set; } = 1;
@@ -109,13 +109,14 @@ namespace tictactoeweb.Hubs
             UsersOnline++;
             UsersAll++;
 
+            await SetUserId();
+
             await GetCurrentPlayer();
 
             await Clients.All.SendAsync("GetOnlineUsers", UsersOnline, UsersAll);
 
             await GetPassMove();
 
-            await SetUserId();
 
             await base.OnConnectedAsync();
         }

@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Main</title>
-    <link rel="stylesheet" href="~/css/index.css" />
+    <link rel="stylesheet" href="~/css/findgame.css" />
 </head>
 <body>
     <section>
@@ -10,7 +10,59 @@
             <div class="find-title d-flex">
                 <p>Searching for players...</p>
             </div>
+            <div class="find-title d-flex">
+                <p id="playersCount"></p>
+            </div>
         </div>
+
+        <form id="gameStart" asp-controller="Game" asp-action="Game">
+            <input type="submit" style="display:none;"/>
+        </form>
     </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    <script>
+
+
+        const hubConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/search")
+            .build();
+
+        let userId = 0;
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            hubConnection.on("GetId", function (playerId) {
+                userId = playerId;
+
+                console.log("id: " + userId);
+            });
+
+            hubConnection.on("PlayerJoin", function (playersCountServer) {
+                const playersCountTitle = document.getElementById("playersCount");
+
+                playersCountTitle.textContent = `${playersCountServer}/2`;
+
+                console.log("players: " + playersCountServer);
+            });
+
+            hubConnection.on("PlayersReady", async function (isReady) {
+                if (isReady && userId != 0) {
+                    if (userId === 2) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    document.getElementById("gameStart").submit();
+                }
+            });
+
+        });
+
+        hubConnection.start().then(function () {
+            console.log("Connected to the hub.");
+        }).catch(function (err) {
+            return console.error(err.toString());
+        });
+
+    </script>
 </body>
 </html>

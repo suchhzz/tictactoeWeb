@@ -44,6 +44,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+app.MapHub<FindGameHub>("/search");
 app.MapHub<TicTacHub>("/game");
 
 app.Run();

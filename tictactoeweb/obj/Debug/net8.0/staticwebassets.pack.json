@@ -5,6 +5,10 @@
       "PackagePath": "staticwebassets\\tictactoeweb.bundle.scp.css"
     },
     {
+      "Id": "C:\\Users\\jenje\\source\\repos\\tictactoeweb\\tictactoeweb\\wwwroot\\css\\findgame.css",
+      "PackagePath": "staticwebassets\\css\\findgame.css"
+    },
+    {
       "Id": "C:\\Users\\jenje\\source\\repos\\tictactoeweb\\tictactoeweb\\wwwroot\\css\\index.css",
       "PackagePath": "staticwebassets\\css\\index.css"
     },
