@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using tictactoeweb.Models;
+using System.ComponentModel;
+using tictactoeweb.Models.MainModels;
 
 namespace tictactoeweb.Context
 {
@@ -8,5 +9,8 @@ namespace tictactoeweb.Context
         public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Role> Roles { get; set; }
+
+        
     }
 }

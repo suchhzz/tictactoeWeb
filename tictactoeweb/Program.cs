@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using tictactoeweb.Context;
 using tictactoeweb.Hubs;
@@ -11,6 +12,13 @@ builder.Services.AddDbContext<UserDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("UsersConnection"));
 });
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Authorization/Login");
+        options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Authorization/Login");
+    });
 
 builder.Services.AddSignalR();
 
@@ -29,6 +37,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

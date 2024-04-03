@@ -6,9 +6,8 @@
     </head>
     <body>
         <header class="head-container d-flex">
-            <div class="log-buttons d-flex">
-            <a asp-controller="Authorization" asp-action="LogIn">Log In</a>
-            <a asp-controller="Authorization" asp-action="Register">Register</a>
+        <div class="log-buttons d-flex">
+            <a asp-controller="Authorization" asp-action="Logout">Logout</a>
             </div>
         </header>
         <section>
@@ -17,7 +16,7 @@
                     <p>Find Game</p>
                     </div>
                     <div class="find-button d-flex">
-                <form class="find-game" asp-action="">
+                <form class="find-game" asp-controller="Game" asp-action="FindGame">
                     <input type="submit" value="FIND GAME" />
                 </form>
                     </div>
