@@ -35,7 +35,7 @@ namespace tictactoeweb.Services
             return role;
         }
 
-        public async void AddUser(User user)
+        public async Task AddUser(User user)
         {
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
@@ -46,6 +46,12 @@ namespace tictactoeweb.Services
             var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Username == model.Username && u.Password == model.Password);
 
             return user;
+        }
+
+        public async Task UpdateUser(User user)
+        {
+             _context.Users.Update(user);
+             await _context.SaveChangesAsync();
         }
     }
 }

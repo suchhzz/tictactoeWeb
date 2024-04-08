@@ -25,6 +25,7 @@ namespace tictactoeweb.Hubs
         public static int PlayerIdCounter { get; set; } = 0;
         public static List<PlayerViewModel> Players = new List<PlayerViewModel>();
 
+
         private void ClearHub()
         {
             Id = 0;
@@ -80,11 +81,31 @@ namespace tictactoeweb.Hubs
         {
             await GetGameStatus(winIndex);
 
-            _logger.LogInformation("GetGameStatus winIndex: " + winIndex);
-
             await GetWinMessage(winIndex);
 
-            _logger.LogInformation("GetWinMessage winIndex: " + winIndex);
+            await SetWinner(winIndex);
+        }
+
+        private async Task SetWinner(int winIndex)
+        {
+            var firstPlayer = await _services.GetUserById(Players[0].Id);
+
+            var secondPlayer = await _services.GetUserById(Players[1].Id);
+
+            if (winIndex == 1)
+            {
+                firstPlayer.Wins++;
+            }
+            else if (winIndex == 2)
+            {
+                secondPlayer.Wins++;
+            }
+
+            firstPlayer.Games++;
+            secondPlayer.Games++;
+
+            await _services.UpdateUser(firstPlayer);
+            await _services.UpdateUser(secondPlayer);
         }
 
         private void switchPassMoveId(int userId)

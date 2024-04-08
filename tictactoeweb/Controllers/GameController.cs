@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using tictactoeweb.Context;
+using tictactoeweb.Models.GameModels;
 using tictactoeweb.Models.HomeModels;
 using tictactoeweb.Services;
 
 namespace tictactoeweb.Controllers
 {
+    [Authorize]
     public class GameController : Controller
     {
         private UserServices _services;

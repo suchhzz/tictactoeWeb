@@ -71,7 +71,7 @@ namespace tictactoeweb.Controllers
                         user.Role = userRole;
                     }
 
-                    _services.AddUser(user);
+                    await _services.AddUser(user);
 
                     await Authenticate(user);
 
