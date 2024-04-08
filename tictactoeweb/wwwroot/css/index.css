@@ -19,7 +19,7 @@ header.head-container {
     justify-content: center;
 }
 
-header.head-container .log-buttons a {
+header.head-container .log-buttons a, p {
     margin: 30px 100px;
     display: flex;
     justify-content: center;

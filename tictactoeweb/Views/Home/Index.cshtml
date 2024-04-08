@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@model tictactoeweb.Models.HomeModels.UserViewModel;
+
+<!DOCTYPE html>
 <html>
     <head>
         <title>Main</title>
@@ -7,6 +9,7 @@
     <body>
         <header class="head-container d-flex">
         <div class="log-buttons d-flex">
+            <a asp-controller="Game" asp-action="Profile"><p>Username: @Model.Username</p></a>
             <a asp-controller="Authorization" asp-action="Logout">Logout</a>
             </div>
         </header>
@@ -16,7 +19,7 @@
                     <p>Find Game</p>
                     </div>
                     <div class="find-button d-flex">
-                <form class="find-game" asp-controller="Game" asp-action="FindGame">
+                <form class="find-game" asp-controller="Game" asp-action="FindGame" method="get">
                     <input type="submit" value="FIND GAME" />
                 </form>
                     </div>

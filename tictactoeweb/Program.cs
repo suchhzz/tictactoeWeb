@@ -2,16 +2,25 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using tictactoeweb.Context;
 using tictactoeweb.Hubs;
+using tictactoeweb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddLogging(configure =>
+{
+    configure.AddConsole();
+});
+
 builder.Services.AddDbContext<UserDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("UsersConnection"));
+    options.LogTo(Console.WriteLine, LogLevel.Warning);
 });
+
+builder.Services.AddScoped<UserServices>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

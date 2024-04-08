@@ -8,6 +8,7 @@ using tictactoeweb.Models.MainModels;
 using tictactoeweb.Context;
 using tictactoeweb.Models.AuthorizationModels;
 using Microsoft.EntityFrameworkCore;
+using tictactoeweb.Services;
 
 namespace tictactoeweb.Controllers
 {
@@ -15,11 +16,13 @@ namespace tictactoeweb.Controllers
     {
         private readonly ILogger<AuthorizationController> _logger;
         private UserDbContext _context;
+        private UserServices _services;
 
-        public AuthorizationController(ILogger<AuthorizationController> logger, UserDbContext context)
+        public AuthorizationController(ILogger<AuthorizationController> logger, UserDbContext context, UserServices services)
         {
             _logger = logger;
             _context = context;
+            _services = services;
         }
 
         public IActionResult Login()
@@ -32,7 +35,7 @@ namespace tictactoeweb.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = _context.Users.Include(u => u.Role).FirstOrDefault(u => u.Username == model.Username && u.Password == model.Password);
+                var user = await _services.GetRegisteredUser(model);
 
                 if (user != null)
                 {
@@ -61,15 +64,14 @@ namespace tictactoeweb.Controllers
                         Password = model.Password
                     };
 
-                    Role userRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "user");
+                    Role userRole = await _services.GetRoleByName();
 
                     if (userRole != null)
                     {
                         user.Role = userRole;
                     }
 
-                    await _context.Users.AddAsync(user);
-                    await _context.SaveChangesAsync();
+                    _services.AddUser(user);
 
                     await Authenticate(user);
 

@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@model tictactoeweb.Models.HomeModels.UserViewModel;
+
+<!DOCTYPE html>
 <html>
 <head>
     <title>Main</title>
@@ -46,12 +48,12 @@
                 console.log("players: " + playersCountServer);
             });
 
-            hubConnection.on("PlayersReady", async function (isReady) {
+            hubConnection.on("PlayersReady", async function (isReady, groupId) {
                 if (isReady && userId != 0) {
                     if (userId === 2) {
                         await new Promise(resolve => setTimeout(resolve, 100));
                     }
-                    document.getElementById("gameStart").submit();
+                    window.location.href = `/Game/StartGame?gameRoom=${groupId}`;
                 }
             });
 
