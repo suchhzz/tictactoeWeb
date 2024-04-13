@@ -9,88 +9,111 @@ using tictactoeweb.Services;
 
 namespace tictactoeweb.Hubs
 {
-    public class TicTacHub : Hub
+    public class TicTacHub : Hub // refact
     {
         private UserServices _services;
+        private RoomService _roomService;
         private readonly ILogger<TicTacHub> _logger;
-        public TicTacHub(ILogger<TicTacHub> logger, UserServices services)
+        public TicTacHub(ILogger<TicTacHub> logger, UserServices services, RoomService roomService)
         {
             _logger = logger;
             _services = services;
+            _roomService = roomService;
         }
-        public static int Id { get; set; } = 0;
+        public static int Id { get; set; } = 1;
         public static int UsersOnline { get; set; } = 0;
         public static int UsersAll { get; set; } = 0;
         public static int MoveCounter { get; set; } = 0;
         public static int PlayerIdCounter { get; set; } = 0;
+        public static int JoinedUsers { get; set; } = 0;
         public static List<PlayerViewModel> Players = new List<PlayerViewModel>();
 
-
-        private void ClearHub()
-        {
-            Id = 0;
-            UsersOnline = 0;
-            UsersAll = 0;
-            MoveCounter = 0;
-            PlayerIdCounter = 0;
-            Players = new List<PlayerViewModel>();
-        }
+        
 
         public async Task SetUserId()
         {
-            Id++;
             await Clients.Caller.SendAsync("GetUserId", Id);
+            switchId();
         }
 
         public int passMovePlayerId { get; set; } = 1;
 
-        public async Task GetPassMove()
+        public async Task SendPlayerMove(string roomId, int userId, int cell, int winIndex)
         {
-            await Clients.All.SendAsync("PassMove", passMovePlayerId);
-        }
+            Room currentRoom = _roomService.GetRoomById(Guid.Parse(roomId));
 
-        public async Task SendPlayerMove(int userId, int cell, int winIndex)
-        {
-            MoveCounter++;
+            currentRoom.MoveCounter++;
 
-            if (winIndex != 0 || MoveCounter == 9)
+            if (winIndex != 0 || currentRoom.MoveCounter == 9)
             {
 
-                if (MoveCounter == 9)
+                if (currentRoom.MoveCounter == 9)
                 {
                     winIndex = 3;
                 }
 
-
                 _logger.LogInformation("game over");
 
-                await GameOver(winIndex);
+                await GameOver(roomId, winIndex);
             }
             else
             {
-                switchPassMoveId(userId);
-                await GetPassMove();
+                _roomService.switchPassMoveId(Guid.Parse(roomId), userId);
+
+                await Clients.Group(roomId).SendAsync("PassMove", currentRoom.PassMoveID);
 
                 _logger.LogInformation("game continues");
             }
 
-            await Clients.All.SendAsync("ReceiveMove", userId, cell, winIndex);
+            await Clients.Group(roomId).SendAsync("ReceiveMove", userId, cell, winIndex);
         }
 
-        public async Task GameOver(int winIndex)
+        public async Task GameOver(string roomId, int winIndex)
         {
-            await GetGameStatus(winIndex);
+            await Clients.Group(roomId).SendAsync("GameStatus", winIndex == 0);
 
-            await GetWinMessage(winIndex);
+            await GetWinMessage(roomId, winIndex);
 
-            await SetWinner(winIndex);
+            await SetWinner(roomId, winIndex);
+
+            await _roomService.RemoveRoomById(Guid.Parse(roomId));
         }
 
-        private async Task SetWinner(int winIndex)
+        public async Task GetWinMessage(string roomId, int winIndex)
         {
-            var firstPlayer = await _services.GetUserById(Players[0].Id);
+            string winner = "";
+            Room currentRoom = _roomService.GetRoomById(Guid.Parse(roomId));
 
-            var secondPlayer = await _services.GetUserById(Players[1].Id);
+            _logger.LogInformation("GetWinMessage (inside), winIndex = " + winIndex);
+
+
+            switch (winIndex)
+            {
+                case 1:
+                    winner = $"player: {currentRoom.Players[0].Username} won";
+                    break;
+                case 2:
+                    winner = $"player: {currentRoom.Players[0].Username} won";
+                    break;
+                case 3:
+                    winner = "DRAW";
+                    break;
+            }
+
+            _logger.LogInformation($"GetWinMessage (inside) winIndex = {winIndex} | message = {winner}");
+
+            await Clients.Group(roomId).SendAsync("WinMessage", winner);
+
+            _logger.LogInformation("message sended: " + winner);
+        }
+
+        private async Task SetWinner(string roomId, int winIndex)
+        {
+            Room currentRoom = _roomService.GetRoomById(Guid.Parse(roomId));
+
+            var firstPlayer = await _services.GetUserById(currentRoom.Players[0].Id);
+
+            var secondPlayer = await _services.GetUserById(currentRoom.Players[1].Id);
 
             if (winIndex == 1)
             {
@@ -128,56 +151,46 @@ namespace tictactoeweb.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task GetGameStatus(int winIndex)
-        {
-            await Clients.All.SendAsync("GameStatus", winIndex == 0);
-        }
+        
 
-        public async Task GetWinMessage(int winIndex)
-        {
-            string winner = "";
-
-            _logger.LogInformation("GetWinMessage (inside), winIndex = " + winIndex);
-
-            switch (winIndex)
-            {
-                case 1:
-                    winner = $"player: {Players[0].Username} won";
-                    break;
-                case 2:
-                    winner = $"player: {Players[1].Username} won";
-                    break;
-                case 3:
-                    winner = "DRAW";
-                    break;
-            }
-
-            _logger.LogInformation($"GetWinMessage (inside) winIndex = {winIndex} | message = {winner}");
-
-            await Clients.All.SendAsync("WinMessage", winner);
-
-            _logger.LogInformation("message sended: " + winner);
-        }
+        
 
         public async Task GetCurrentPlayer()
         {
-            await Clients.All.SendAsync("GetCurrentPlayer", passMovePlayerId);
+            
         }
-
+        public static void switchId()
+        {
+            if (Id == 1)
+            {
+                Id = 2;
+            }
+            else
+            {
+                Id = 1;
+            }
+        }
         public override async Task OnConnectedAsync()
         {
             UsersOnline++;
             UsersAll++;
 
-            await SetUserId();
-
-            await GetCurrentPlayer();
+            await Clients.Caller.SendAsync("GetUserId", Id);
+            switchId();
 
             await Clients.All.SendAsync("GetOnlineUsers", UsersOnline, UsersAll);
 
-            await GetPassMove();
-
             await base.OnConnectedAsync();
+        }
+
+        public async Task SetPlayersDefault(string roomId)
+        {
+            Room currentRoom = _roomService.GetRoomById(Guid.Parse(roomId));
+
+            await Clients.Group(roomId).SendAsync("GetCurrentPlayer", currentRoom.PassMoveID);
+
+            await Clients.Group(roomId).SendAsync("PassMove", currentRoom.PassMoveID);
+
         }
 
 
@@ -193,9 +206,50 @@ namespace tictactoeweb.Hubs
 
             _logger.LogInformation("player added");
 
-            _logger.LogInformation($"player entered: Username: {Players[Players.Count - 1].Username} Guid-Id: {Players[Players.Count - 1].Id} PlayerId: {Players[Players.Count - 1].PlayerId}");
+            _logger.LogInformation($"player entered: Username: {Players[Players.Count - 1].Username}" +
+                $" Guid-Id: {Players[Players.Count - 1].Id}" +
+                $" PlayerId: {Players[Players.Count - 1].PlayerId}");
 
             PlayerIdCounter++;
+        }
+
+       
+
+        public async Task JoinPlayer(string inputId)
+        {
+            Guid currentUserId = Guid.Parse(inputId);
+
+            if (_roomService.Rooms[_roomService.Rooms.Count - 1].Players[JoinedUsers].Id != currentUserId)
+            {
+                _logger.LogInformation($"user id {inputId} is not {_roomService.Rooms[_roomService.Rooms.Count - 1].Players[JoinedUsers].Id}");
+            }
+            else
+            {
+                _logger.LogInformation($"user id {inputId} connected");
+
+                await Groups.AddToGroupAsync(
+                    Context.ConnectionId,
+                    _roomService.Rooms[_roomService.Rooms.Count - 1].RoomId.ToString() );
+            }
+
+            JoinedUsers++;
+
+            if (JoinedUsers == 2)
+            {
+                await GetGroupId(_roomService.Rooms[_roomService.Rooms.Count - 1].RoomId.ToString());
+
+                await Clients.Group
+                    (   _roomService.Rooms[_roomService.Rooms.Count - 1]
+                        .RoomId.ToString()
+                    ).SendAsync("PlayersReady", true);
+
+                JoinedUsers = 0;
+            }
+        }
+
+        public async Task GetGroupId(string groupId)
+        {
+            await Clients.Groups(groupId).SendAsync("GetGroupId", groupId);
         }
     }
 }

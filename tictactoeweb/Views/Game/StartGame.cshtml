@@ -58,7 +58,29 @@
         let game = new TicTacToe();
         let currentWinIndex = 0;
 
+        let gameRoomGroupId;
+
         document.addEventListener("DOMContentLoaded", function () {
+
+            hubConnection.on("GetGroupId", function (groupId)
+            {
+                gameRoomGroupId = groupId;
+
+                console.log("groupId: " + gameRoomGroupId);
+            })
+
+            hubConnection.on("PlayersReady", function (isReady)
+            {
+                if (isReady) { 
+                    hubConnection.invoke("SetPlayersDefault", gameRoomGroupId)
+                    .then(function () {
+                        console.log("player ready");
+                    })
+                    .catch(function (err) {
+                        console.error("SetPlayersDefault exception: ", err.toString());
+                    });
+                }
+            })
 
             hubConnection.on("GetOnlineUsers", function (usersOnlineFromServer, usersAllFromServer) {
 
@@ -73,7 +95,7 @@
                 console.log("id: " + userId);
                 updateUserId();
             });
-
+         
             hubConnection.on("PassMove", function (passMovePlayerId) {
                 console.log("moving id: " + passMovePlayerId);
 
@@ -125,12 +147,12 @@
                 if (game.makeMove(cell, userId)) {
                     if (game.checkWin()) {
                         game.winIndex = userId;
-                        hubConnection.invoke("SendPlayerMove", userId, cell, game.winIndex)
+                        hubConnection.invoke("SendPlayerMove", gameRoomGroupId, userId, cell, game.winIndex)
                             .catch((error) => {
                                 console.error("Ошибка при отправке данных на сервер:", error);
                             });
                     } else {
-                        hubConnection.invoke("SendPlayerMove", userId, cell, game.winIndex)
+                        hubConnection.invoke("SendPlayerMove", gameRoomGroupId, userId, cell, game.winIndex)
                             .catch((error) => {
                                 console.error("Ошибка при отправке данных на сервер:", error);
                             });
@@ -209,12 +231,9 @@
                     item.disabled = true;
                 });
 
-                hubConnection.invoke("SetCurrentPlayer", '@Model.Id')
+                hubConnection.invoke("JoinPlayer", '@Model.Id')
                     .then(function () {
                         console.log("player added");
-
-                        // Здесь вы можете продолжить выполнение других операций,
-                        // которые зависят от успешного выполнения SetCurrentPlayer
                     })
                     .catch(function (err) {
                         console.error("SetCurrentPlayer exception: ", err.toString());

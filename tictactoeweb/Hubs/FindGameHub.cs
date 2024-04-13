@@ -1,41 +1,71 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System.Text.RegularExpressions;
+using tictactoeweb.Models.GameModels;
+using tictactoeweb.Models.HomeModels;
+using tictactoeweb.Models.MainModels;
+using tictactoeweb.Services;
 
 namespace tictactoeweb.Hubs
 {
     public class FindGameHub : Hub
     {
+        private RoomService _roomService;
+        private UserServices _userService;
+        public FindGameHub(RoomService roomService, UserServices userService)
+        {
+            _roomService = roomService;
+            _userService = userService;
+        }
+
         public static int PlayersCount { get; set; } = 0;
         public static int GroupId { get; set; } = 0;
+        public static List<UserViewModel> Players = new List<UserViewModel>();
         public override async Task OnConnectedAsync()
         {
-
             PlayersCount++;
 
-            GetId();
+            await Clients.Caller.SendAsync("GetId", PlayersCount);
 
             await Clients.All.SendAsync("PlayerJoin", PlayersCount);
 
-            checkPlayersReady();
 
             await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            PlayersCount = 0;
+
+            await Clients.All.SendAsync("PlayerJoin", PlayersCount);
+
+            await base.OnDisconnectedAsync(exception);
         }
 
         private async void checkPlayersReady()
         {
             if (PlayersCount == 2)
             {
-                await Groups.AddToGroupAsync(Context.ConnectionId, GroupId.ToString()); 
-
                 await Clients.All.SendAsync("PlayersReady", true, GroupId);
 
+                await _roomService.CreateRoom(Players);
+
+                Players.Clear();
+
                 GroupId++;
+
+                PlayersCount = 0;
             }
         }
 
-        private async void GetId()
+        public async Task AddPlayerToList(string userId)
         {
-            await Clients.Caller.SendAsync("GetId", PlayersCount);
+            var user = await _userService.GetUserById(Guid.Parse(userId));
+
+            UserViewModel userVM = new UserViewModel { Id = user.Id, Username = user.Username };
+
+            Players.Add(userVM);
+
+            checkPlayersReady();
         }
     }
 }
