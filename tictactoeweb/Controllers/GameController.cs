@@ -18,7 +18,7 @@ namespace tictactoeweb.Controllers
             _services = services;
         }
 
-        public async Task<IActionResult> StartGame(string gameRoom)
+        public async Task<IActionResult> StartGame()
         {
             UserViewModel player = new UserViewModel { Username = User.Identity.Name };
 

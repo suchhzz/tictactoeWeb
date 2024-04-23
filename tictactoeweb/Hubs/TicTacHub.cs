@@ -23,20 +23,13 @@ namespace tictactoeweb.Hubs
         public static int Id { get; set; } = 1;
         public static int UsersOnline { get; set; } = 0;
         public static int UsersAll { get; set; } = 0;
-        public static int MoveCounter { get; set; } = 0;
-        public static int PlayerIdCounter { get; set; } = 0;
         public static int JoinedUsers { get; set; } = 0;
-        public static List<PlayerViewModel> Players = new List<PlayerViewModel>();
-
-        
 
         public async Task SetUserId()
         {
             await Clients.Caller.SendAsync("GetUserId", Id);
             switchId();
         }
-
-        public int passMovePlayerId { get; set; } = 1;
 
         public async Task SendPlayerMove(string roomId, int userId, int cell, int winIndex)
         {
@@ -131,17 +124,6 @@ namespace tictactoeweb.Hubs
             await _services.UpdateUser(secondPlayer);
         }
 
-        private void switchPassMoveId(int userId)
-        {
-            if (userId == 1)
-            {
-                passMovePlayerId = 2;
-            }
-            else if (userId == 2)
-            {
-                passMovePlayerId = 1;
-            }
-        }
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             UsersOnline--;
@@ -151,14 +133,6 @@ namespace tictactoeweb.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        
-
-        
-
-        public async Task GetCurrentPlayer()
-        {
-            
-        }
         public static void switchId()
         {
             if (Id == 1)
@@ -192,28 +166,6 @@ namespace tictactoeweb.Hubs
             await Clients.Group(roomId).SendAsync("PassMove", currentRoom.PassMoveID);
 
         }
-
-
-        public async Task SetCurrentPlayer(string inputId)
-        {
-            Guid newId = Guid.Parse(inputId);
-
-            User currentUser = await _services.GetUserById(newId);
-
-            Players.Add(new PlayerViewModel { Id = currentUser.Id, Username = currentUser.Username, PlayerId = PlayerIdCounter });
-
-            await Clients.Caller.SendAsync("GetPlayerMessage", Players[Players.Count - 1].Username);
-
-            _logger.LogInformation("player added");
-
-            _logger.LogInformation($"player entered: Username: {Players[Players.Count - 1].Username}" +
-                $" Guid-Id: {Players[Players.Count - 1].Id}" +
-                $" PlayerId: {Players[Players.Count - 1].PlayerId}");
-
-            PlayerIdCounter++;
-        }
-
-       
 
         public async Task JoinPlayer(string inputId)
         {

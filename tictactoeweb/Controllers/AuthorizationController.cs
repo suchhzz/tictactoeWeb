@@ -54,8 +54,17 @@ namespace tictactoeweb.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterModel model)
         {
+            
+
             if (ModelState.IsValid)
             {
+                var regiseredUser = _services.GetUserByUsername(model.Username);
+
+                if (regiseredUser != null)
+                {
+                    return View(model);
+                }
+
                 if (model.Password == model.PasswordConfirm)
                 {
                     User user = new User
@@ -84,14 +93,13 @@ namespace tictactoeweb.Controllers
 
         private async Task Authenticate(User user)
         {
-            var claims = new List<Claim> // список из утверждений пользователя (в данном примере только один - userName)
+            var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Username), // создается обьект Claim с типом значения DefaultNameClaimType и значением userName
-                new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role?.Name) // куки теперь имеет информацию о роли пользователя
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Username),
+                new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role?.Name)
             };
-            // создаем объект ClaimsIdentity структурирует выше введенные Claim в удобный вид, можно будет обратиться к пользователю через User.Identity
             ClaimsIdentity id = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
-            // установка аутентификационных куки // браузер заносит информацию в куки
+
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
         }
         public async Task<IActionResult> Logout()
