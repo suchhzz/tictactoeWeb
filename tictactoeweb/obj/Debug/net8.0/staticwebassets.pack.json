@@ -29,10 +29,6 @@
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
-      "Id": "C:\\Users\\jenje\\source\\repos\\tictactoeweb\\tictactoeweb\\wwwroot\\js\\site.js",
-      "PackagePath": "staticwebassets\\js\\site.js"
-    },
-    {
       "Id": "C:\\Users\\jenje\\source\\repos\\tictactoeweb\\tictactoeweb\\wwwroot\\lib\\bootstrap\\LICENSE",
       "PackagePath": "staticwebassets\\lib\\bootstrap"
     },

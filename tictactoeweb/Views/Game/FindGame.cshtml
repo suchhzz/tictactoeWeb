@@ -1,4 +1,4 @@
-﻿@model tictactoeweb.Models.HomeModels.UserViewModel;
+﻿@model tictactoeweb.Models.MainModels.User;
 
 <!DOCTYPE html>
 <html>
@@ -17,8 +17,9 @@
             </div>
         </div>
 
-        <form id="gameStart" asp-controller="Game" asp-action="Game">
-            <input type="submit" style="display:none;"/>
+        <form id="gameStart" asp-controller="Game" asp-action="StartGame" method="post">
+            <input type="text" id="routeRoomId" name="sendRoomId" style="display:none;" />
+            <input type="submit" id="sendBtn" style="display:none;"/>
         </form>
     </section>
 
@@ -30,42 +31,37 @@
             .withUrl("/search")
             .build();
 
-        let userId = 0;
+        hubConnection.start()
+            .then(function () {
 
-        document.addEventListener("DOMContentLoaded", function () {
-
-            hubConnection.on("GetId", function (playerId) {
-                userId = playerId;
-
-                console.log("id: " + userId);
-            });
-
-
-            hubConnection.on("PlayerJoin", function (playersCountServer) {
-                const playersCountTitle = document.getElementById("playersCount");
-
-                playersCountTitle.textContent = `${playersCountServer}/2`;
-
-                console.log("players: " + playersCountServer);
-            });
-
-            hubConnection.on("PlayersReady", async function (isReady, groupId) {
-                if (isReady && userId != 0) {
-                    if (userId === 2) {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                    }
-                    window.location.href = `/Game/StartGame`;
-                }
-            });
-
-        });
-
-        hubConnection.start().then(function () {
             console.log("Connected to the hub.");
+
+                hubConnection.on("PlayerJoin", function (playersCountServer) {
+                    const playersCountTitle = document.getElementById("playersCount");
+
+                    playersCountTitle.textContent = `${playersCountServer}/2`;
+
+                    console.log("players: " + playersCountServer);
+                });
+
+                hubConnection.on("PlayersReady", async function (roomId) {
+
+                    console.log("received: " + roomId);
+
+                    let formElem = document.getElementById("gameStart");
+                    let hiddenInput = document.getElementById("routeRoomId");
+
+                    if (hiddenInput) {
+                        hiddenInput.value = roomId;
+                        formElem.submit(); 
+                    } else {
+                        console.error("Hidden input field is not found!");
+                    }
+                });
 
             hubConnection.invoke("AddPlayerToList", '@Model.Id')
                 .then(function () {
-                    console.log("player added");
+                    console.log("player added " + '@Model.Id');
                 })
         }).catch(function (err) {
             return console.error(err.toString());

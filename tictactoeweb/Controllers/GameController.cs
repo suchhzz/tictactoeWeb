@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using tictactoeweb.Context;
 using tictactoeweb.Models.GameModels;
-using tictactoeweb.Models.HomeModels;
 using tictactoeweb.Services;
 
 namespace tictactoeweb.Controllers
@@ -12,38 +11,33 @@ namespace tictactoeweb.Controllers
     public class GameController : Controller
     {
         private UserServices _services;
+        private readonly RoomService _roomService;
 
-        public GameController(UserServices services)
+        public GameController(UserServices services, RoomService roomService)
         {
             _services = services;
+            _roomService = roomService;
         }
 
-        public async Task<IActionResult> StartGame()
+
+        public async Task<IActionResult> StartGame(string sendRoomId)
         {
-            UserViewModel player = new UserViewModel { Username = User.Identity.Name };
+            var room = _roomService.GetRoomById(Guid.Parse(sendRoomId));
 
-            var user = await _services.GetUserByUsername(player.Username);
-
-            if (user != null)
+            var gameViewModel = new GameViewModel
             {
-                player.Id = user.Id;
-            }
+                currentRoom = room,
+                CurrentUser = await _services.GetUserByUsername(User.Identity.Name)
+            };
 
-            return View(player);
+            return View(gameViewModel);
         }
 
         public async Task<IActionResult> FindGame()
         {
-            UserViewModel player = new UserViewModel { Username = User.Identity.Name };
+            var user = await _services.GetUserByUsername(User.Identity.Name);
 
-            var user = await _services.GetUserByUsername(player.Username);
-
-            if (user != null)
-            {
-                player.Id = user.Id;
-            }
-
-            return View(player);
+            return View(user);
         }
     }
 }

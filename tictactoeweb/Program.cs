@@ -21,6 +21,7 @@ builder.Services.AddDbContext<UserDbContext>(options =>
 });
 
 builder.Services.AddScoped<UserServices>();
+builder.Services.AddSingleton<GameService>();
 builder.Services.AddSingleton<RoomService>();
 
 

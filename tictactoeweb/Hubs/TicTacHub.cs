@@ -3,200 +3,65 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using tictactoeweb.Context;
 using tictactoeweb.Models.GameModels;
-using tictactoeweb.Models.HomeModels;
 using tictactoeweb.Models.MainModels;
 using tictactoeweb.Services;
 
 namespace tictactoeweb.Hubs
 {
-    public class TicTacHub : Hub // refact
+    public class TicTacHub : Hub
     {
-        private UserServices _services;
-        private RoomService _roomService;
+        private readonly RoomService _roomService;
+        private readonly GameService _gameService;
         private readonly ILogger<TicTacHub> _logger;
-        public TicTacHub(ILogger<TicTacHub> logger, UserServices services, RoomService roomService)
+        public TicTacHub(ILogger<TicTacHub> logger, RoomService roomService, GameService gameService)
         {
             _logger = logger;
-            _services = services;
             _roomService = roomService;
+            _gameService = gameService;
         }
-        public static int Id { get; set; } = 1;
-        public static int UsersOnline { get; set; } = 0;
-        public static int UsersAll { get; set; } = 0;
-        public static int JoinedUsers { get; set; } = 0;
-
-        public async Task SetUserId()
+        public async Task PlayerMove(string roomId, int cell)
         {
-            await Clients.Caller.SendAsync("GetUserId", Id);
-            switchId();
-        }
+            var currentRoom = _roomService.GetRoomById(Guid.Parse(roomId));
 
-        public async Task SendPlayerMove(string roomId, int userId, int cell, int winIndex)
-        {
-            Room currentRoom = _roomService.GetRoomById(Guid.Parse(roomId));
+            await Clients.Group(roomId).SendAsync("ReceiveMove", currentRoom.Playground.PassMoveId, cell);
 
-            currentRoom.MoveCounter++;
+            _gameService.SetPlayerMove(currentRoom, cell);
 
-            if (winIndex != 0 || currentRoom.MoveCounter == 9)
+            await Clients.Group(roomId).SendAsync("ChangePlayerTurn", currentRoom.Playground.PassMoveId);
+
+            if (currentRoom.Playground.WinIndex != 0 || currentRoom.Playground.MoveCounter == 9)
             {
 
-                if (currentRoom.MoveCounter == 9)
+                if (currentRoom.Playground.MoveCounter == 9)
                 {
-                    winIndex = 3;
+                    currentRoom.Playground.WinIndex = 3;
                 }
 
-                _logger.LogInformation("game over");
+                await Clients.Group(roomId).SendAsync("GameOver", _gameService.getWinMessage(currentRoom));
 
-                await GameOver(roomId, winIndex);
+                _logger.LogInformation("game over");
             }
             else
             {
-                _roomService.switchPassMoveId(Guid.Parse(roomId), userId);
-
-                await Clients.Group(roomId).SendAsync("PassMove", currentRoom.PassMoveID);
-
                 _logger.LogInformation("game continues");
             }
 
-            await Clients.Group(roomId).SendAsync("ReceiveMove", userId, cell, winIndex);
         }
 
-        public async Task GameOver(string roomId, int winIndex)
+        public async Task JoinPlayer(string roomId)
         {
-            await Clients.Group(roomId).SendAsync("GameStatus", winIndex == 0);
+            var currentRoom = _roomService.GetRoomById(Guid.Parse(roomId));
 
-            await GetWinMessage(roomId, winIndex);
+            await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
 
-            await SetWinner(roomId, winIndex);
-
-            await _roomService.RemoveRoomById(Guid.Parse(roomId));
+            _logger.LogInformation("player connected: " + roomId);
         }
 
-        public async Task GetWinMessage(string roomId, int winIndex)
+        public async Task PlayerSettings(string roomId, string userId)
         {
-            string winner = "";
-            Room currentRoom = _roomService.GetRoomById(Guid.Parse(roomId));
+            var currentRoom = _roomService.GetRoomById(Guid.Parse(roomId));
 
-            _logger.LogInformation("GetWinMessage (inside), winIndex = " + winIndex);
-
-
-            switch (winIndex)
-            {
-                case 1:
-                    winner = $"player: {currentRoom.Players[0].Username} won";
-                    break;
-                case 2:
-                    winner = $"player: {currentRoom.Players[0].Username} won";
-                    break;
-                case 3:
-                    winner = "DRAW";
-                    break;
-            }
-
-            _logger.LogInformation($"GetWinMessage (inside) winIndex = {winIndex} | message = {winner}");
-
-            await Clients.Group(roomId).SendAsync("WinMessage", winner);
-
-            _logger.LogInformation("message sended: " + winner);
-        }
-
-        private async Task SetWinner(string roomId, int winIndex)
-        {
-            Room currentRoom = _roomService.GetRoomById(Guid.Parse(roomId));
-
-            var firstPlayer = await _services.GetUserById(currentRoom.Players[0].Id);
-
-            var secondPlayer = await _services.GetUserById(currentRoom.Players[1].Id);
-
-            if (winIndex == 1)
-            {
-                firstPlayer.Wins++;
-            }
-            else if (winIndex == 2)
-            {
-                secondPlayer.Wins++;
-            }
-
-            firstPlayer.Games++;
-            secondPlayer.Games++;
-
-            await _services.UpdateUser(firstPlayer);
-            await _services.UpdateUser(secondPlayer);
-        }
-
-        public override async Task OnDisconnectedAsync(Exception? exception)
-        {
-            UsersOnline--;
-
-            await Clients.All.SendAsync("GetOnlineUsers", UsersOnline, UsersAll);
-
-            await base.OnDisconnectedAsync(exception);
-        }
-
-        public static void switchId()
-        {
-            if (Id == 1)
-            {
-                Id = 2;
-            }
-            else
-            {
-                Id = 1;
-            }
-        }
-        public override async Task OnConnectedAsync()
-        {
-            UsersOnline++;
-            UsersAll++;
-
-            await Clients.Caller.SendAsync("GetUserId", Id);
-            switchId();
-
-            await Clients.All.SendAsync("GetOnlineUsers", UsersOnline, UsersAll);
-
-            await base.OnConnectedAsync();
-        }
-
-        public async Task SetPlayersDefault(string roomId)
-        {
-            Room currentRoom = _roomService.GetRoomById(Guid.Parse(roomId));
-
-            await Clients.Group(roomId).SendAsync("GetCurrentPlayer", currentRoom.PassMoveID);
-
-            await Clients.Group(roomId).SendAsync("PassMove", currentRoom.PassMoveID);
-
-        }
-
-        public async Task JoinPlayer(string inputId)
-        {
-            Guid currentUserId = Guid.Parse(inputId);
-
-            if (_roomService.Rooms[_roomService.Rooms.Count - 1].Players[JoinedUsers].Id != currentUserId)
-            {
-                _logger.LogInformation($"user id {inputId} is not {_roomService.Rooms[_roomService.Rooms.Count - 1].Players[JoinedUsers].Id}");
-            }
-            else
-            {
-                _logger.LogInformation($"user id {inputId} connected");
-
-                await Groups.AddToGroupAsync(
-                    Context.ConnectionId,
-                    _roomService.Rooms[_roomService.Rooms.Count - 1].RoomId.ToString() );
-            }
-
-            JoinedUsers++;
-
-            if (JoinedUsers == 2)
-            {
-                await GetGroupId(_roomService.Rooms[_roomService.Rooms.Count - 1].RoomId.ToString());
-
-                await Clients.Group
-                    (   _roomService.Rooms[_roomService.Rooms.Count - 1]
-                        .RoomId.ToString()
-                    ).SendAsync("PlayersReady", true);
-
-                JoinedUsers = 0;
-            }
+            await Clients.Caller.SendAsync("PlayerId", currentRoom.Players.Where(p => p.Id == Guid.Parse(userId)).First().PlayerId, currentRoom.Playground.PassMoveId);
         }
 
         public async Task GetGroupId(string groupId)

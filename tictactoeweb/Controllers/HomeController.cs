@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using tictactoeweb.Context;
 using tictactoeweb.Models;
-using tictactoeweb.Models.HomeModels;
 using tictactoeweb.Services;
 
 namespace tictactoeweb.Controllers
@@ -23,16 +22,9 @@ namespace tictactoeweb.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var userVM = new UserViewModel { Username = User.Identity.Name };
+            var user = await _services.GetUserByUsername(User.Identity.Name);
 
-            var user = await _services.GetUserByUsername(userVM.Username);
-
-            if (user != null)
-            {
-                userVM.Id = user.Id;
-            }
-
-            return View(userVM);
+            return View(user);
         }
 
         public IActionResult Privacy()

@@ -1,4 +1,4 @@
-﻿@model tictactoeweb.Models.HomeModels.UserViewModel
+﻿@model tictactoeweb.Models.GameModels.GameViewModel;
 
 <!DOCTYPE html>
 <html lang="en">
@@ -12,13 +12,7 @@
     <div class="main-container d-flex">
         <div class="content">
             <div>
-                <p>username: @Model.Username</p>
-            </div>
-            <div id="usersCount">
-
-            </div>
-            <div id="usersId">
-
+                <p>username: @Model.CurrentUser.Username</p>
             </div>
             <table>
                 <tr>
@@ -37,207 +31,112 @@
                     <td><input type="button" data-cell-index="8" id="8" class="cell" onclick="makeMove(8)" /></td>
                 </tr>
             </table>
-            <div id="result"></div>
+            <div class="after-game">
+                <div id="result"></div>
+                <div>
+                    <form class="home-button-form d-flex" asp-controller="Home" asp-action="Index">
+                        <input type="submit" value="Home" id="homeButton" style="display:none;"/>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
-    <script src="~/js/site.js"></script>
 
     <script>
         const hubConnection = new signalR.HubConnectionBuilder()
             .withUrl("/game")
             .build();
 
-        let userId = 0;
-
-        let usersOnline;
-        let usersAll;
-
-        let gameOver = false;
-        let game = new TicTacToe();
-        let currentWinIndex = 0;
-
-        let gameRoomGroupId;
-
-        document.addEventListener("DOMContentLoaded", function () {
-
-            hubConnection.on("GetGroupId", function (groupId)
-            {
-                gameRoomGroupId = groupId;
-
-                console.log("groupId: " + gameRoomGroupId);
-            })
-
-            hubConnection.on("PlayersReady", function (isReady)
-            {
-                if (isReady) { 
-                    hubConnection.invoke("SetPlayersDefault", gameRoomGroupId)
-                    .then(function () {
-                        console.log("player ready");
-                    })
-                    .catch(function (err) {
-                        console.error("SetPlayersDefault exception: ", err.toString());
-                    });
-                }
-            })
-
-            hubConnection.on("GetOnlineUsers", function (usersOnlineFromServer, usersAllFromServer) {
-
-                usersOnline = usersOnlineFromServer;
-                usersAll = usersAllFromServer;
-
-                updateCountUsers();
-            });
-
-            hubConnection.on("GetUserId", function (userIdFromServer) {
-                userId = userIdFromServer;
-                console.log("id: " + userId);
-                updateUserId();
-            });
-         
-            hubConnection.on("PassMove", function (passMovePlayerId) {
-                console.log("moving id: " + passMovePlayerId);
-
-                allowButtons(userId === passMovePlayerId);
-            });
-
-            hubConnection.on("GetPlayerMessage", function (id) {
-                console.log("added player Id = " + id);
-            });
-        });
-
-        function allowButtons(pass) {
-            let cells = document.querySelectorAll('.cell[data-cell-index]');
-            cells.forEach(function (item) {
-                item.disabled = !pass;
-            });
-        }
-
-        function updateCountUsers()
-        {
-            const usersCountDiv = document.getElementById("usersCount");
-
-            const OnlineElem = document.createElement("p");
-            OnlineElem.textContent = `online users: ${usersOnline}`;
-
-            const AllUsersElem = document.createElement("p");
-            AllUsersElem.textContent = `all users: ${usersAll}`;
-
-            while (usersCountDiv.firstChild) { 
-                usersCountDiv.removeChild(usersCountDiv.firstChild);
-            }
-
-            usersCountDiv.appendChild(OnlineElem);
-            usersCountDiv.appendChild(AllUsersElem);
-        }
-
-        function updateUserId() { 
-            const userIdDiv = document.getElementById("usersId");
-
-            const userIdElem = document.createElement("p");
-            userIdElem.textContent = `id: ${userId}`;
-
-            userIdDiv.removeChild(userIdDiv.firstChild);
-            userIdDiv.appendChild(userIdElem);
-        }
+        let playerId = 0;
 
         function makeMove(cell) {
-            if (!gameOver) {
-                if (game.makeMove(cell, userId)) {
-                    if (game.checkWin()) {
-                        game.winIndex = userId;
-                        hubConnection.invoke("SendPlayerMove", gameRoomGroupId, userId, cell, game.winIndex)
-                            .catch((error) => {
-                                console.error("Ошибка при отправке данных на сервер:", error);
-                            });
-                    } else {
-                        hubConnection.invoke("SendPlayerMove", gameRoomGroupId, userId, cell, game.winIndex)
-                            .catch((error) => {
-                                console.error("Ошибка при отправке данных на сервер:", error);
-                            });
-                    }
-                }
+                 hubConnection.invoke("PlayerMove", '@Model.currentRoom.RoomId', cell)
+                     .then(function () {
+                         console.log(`player clicked on ${cell}`);
+                     });
+        }
+
+        function unlockButtons(passMove) {
+            let cells = document.querySelectorAll('.cell[data-cell-index]');
+            
+            if (playerId == passMove) {
+                cells.forEach(function (item) {
+                    item.disabled = false;
+                });
+            }
+            else { 
+                cells.forEach(function (item) {
+                    item.disabled = true;
+                });
             }
         }
 
-        hubConnection.on("ReceiveMove", function (userIdServer, cellServer, winIndexServer) {
-
-            updatePlayground(userIdServer, cellServer);
-
-            const buttonElem = document.getElementById(`${cellServer}`);
-
-            if (userIdServer === 1) {
-                buttonElem.style.background = 'red';
-            }
-            else if (userIdServer === 2) {
-                buttonElem.style.background = 'blue';
-            }
-
-            console.log(game.playground);
-            console.log(game.winIndex);
-        });
-
-        hubConnection.on("WinMessage", function (winner) {
-            let resultElement = document.createElement("p");
-            let resultText = document.createTextNode(winner);
-            resultElement.appendChild(resultText);
-            document.getElementById("result").appendChild(resultElement);
-            disablePlayground();
-        });
-
-        hubConnection.on("GameStatus", function (status) {
-            gameOver = status;
-        });
-
-        function disablePlayground() {
+        function disableButtons() {
             let cells = document.querySelectorAll('.cell[data-cell-index]');
+
             cells.forEach(function (item) {
                 item.disabled = true;
-            });
-        };
-
-        function updatePlayground(userIdServer, cellServer) { 
-            game.playground[cellServer] = userIdServer;
-
-            console.log("win index: " + game.winIndex);
+            })
         }
 
-
-        function updateBoard()
-        {
-            for (let i = 0; i < game.playground.length; i++)
-            {
-                const cellButton = document.querySelector(`.cell[data-cell-index="${i}"]`);
-                if (game.playground[i] === 1)
-                {
-                    cellButton.style.backgroundColor = 'red';
-                }
-                else if (game.playground[i] === 2)
-                {
-                    cellButton.style.backgroundColor = 'blue';
-                }
-                else
-                {
-                    cellButton.style.backgroundColor = 'white';
-                }
-            }
+        function showHomeButton() {
+            const homeBtn = document.getElementById("homeButton");
+            homeBtn.style.display = 'flex';
         }
 
         hubConnection.start()
             .then(function () {
+
                 let cells = document.querySelectorAll('.cell[data-cell-index]');
                 cells.forEach(function (item) {
                     item.disabled = true;
                 });
 
-                hubConnection.invoke("JoinPlayer", '@Model.Id')
+                hubConnection.on("GameOver", function (winMessage) {
+
+                    console.log("win message: " + winMessage);
+
+                    let resultElement = document.createElement("p");
+                    let resultText = document.createTextNode(winMessage);
+
+                    resultElement.appendChild(resultText);
+                    document.getElementById("result").appendChild(resultElement);
+
+                    disableButtons();
+                    showHomeButton();
+                });
+
+                hubConnection.on("ReceiveMove", function (passMove, cell) {
+                    const buttonElem = document.getElementById(`${cell}`);
+
+                    if (passMove === 1) {
+                        buttonElem.style.backgroundColor = "red";
+                    }
+                    else {
+                        buttonElem.style.backgroundColor = "blue";
+                    }
+                });
+
+                hubConnection.on("ChangePlayerTurn", function (passMove) {
+                    unlockButtons(passMove);
+                });
+
+                hubConnection.on("PlayerId", function (id, passMove) {
+                    playerId = id;
+
+                    console.log("playerId received: " + id);
+
+                    unlockButtons(passMove);
+                });
+
+                hubConnection.invoke("JoinPlayer", '@Model.currentRoom.RoomId')
                     .then(function () {
                         console.log("player added");
-                    })
-                    .catch(function (err) {
-                        console.error("SetCurrentPlayer exception: ", err.toString());
                     });
+                hubConnection.invoke("PlayerSettings", '@Model.currentRoom.RoomId', '@Model.CurrentUser.Id');
+
             })
             .catch(function (err) {
                 return console.error(err.toString());
