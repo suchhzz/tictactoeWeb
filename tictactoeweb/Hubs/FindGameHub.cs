@@ -9,8 +9,8 @@ namespace tictactoeweb.Hubs
     public class FindGameHub : Hub
     {
         private RoomService _roomService;
-        private UserServices _userService;
-        public FindGameHub(RoomService roomService, UserServices userService)
+        private UserService _userService;
+        public FindGameHub(RoomService roomService, UserService userService)
         {
             _roomService = roomService;
             _userService = userService;

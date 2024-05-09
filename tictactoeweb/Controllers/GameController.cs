@@ -10,10 +10,10 @@ namespace tictactoeweb.Controllers
     [Authorize]
     public class GameController : Controller
     {
-        private UserServices _services;
+        private UserService _services;
         private readonly RoomService _roomService;
 
-        public GameController(UserServices services, RoomService roomService)
+        public GameController(UserService services, RoomService roomService)
         {
             _services = services;
             _roomService = roomService;

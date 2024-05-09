@@ -15,13 +15,11 @@ namespace tictactoeweb.Controllers
     public class AuthorizationController : Controller
     {
         private readonly ILogger<AuthorizationController> _logger;
-        private UserDbContext _context;
-        private UserServices _services;
+        private UserService _services;
 
-        public AuthorizationController(ILogger<AuthorizationController> logger, UserDbContext context, UserServices services)
+        public AuthorizationController(ILogger<AuthorizationController> logger, UserService services)
         {
             _logger = logger;
-            _context = context;
             _services = services;
         }
 
@@ -58,7 +56,7 @@ namespace tictactoeweb.Controllers
 
             if (ModelState.IsValid)
             {
-                var regiseredUser = _services.GetUserByUsername(model.Username);
+                var regiseredUser = await _services.GetUserByUsername(model.Username);
 
                 if (regiseredUser != null)
                 {

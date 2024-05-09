@@ -12,12 +12,14 @@ namespace tictactoeweb.Hubs
     {
         private readonly RoomService _roomService;
         private readonly GameService _gameService;
+        private readonly UserService _userService;
         private readonly ILogger<TicTacHub> _logger;
-        public TicTacHub(ILogger<TicTacHub> logger, RoomService roomService, GameService gameService)
+        public TicTacHub(ILogger<TicTacHub> logger, RoomService roomService, GameService gameService, UserService userService)
         {
             _logger = logger;
             _roomService = roomService;
             _gameService = gameService;
+            _userService = userService;
         }
         public async Task PlayerMove(string roomId, int cell)
         {
@@ -62,11 +64,6 @@ namespace tictactoeweb.Hubs
             var currentRoom = _roomService.GetRoomById(Guid.Parse(roomId));
 
             await Clients.Caller.SendAsync("PlayerId", currentRoom.Players.Where(p => p.Id == Guid.Parse(userId)).First().PlayerId, currentRoom.Playground.PassMoveId);
-        }
-
-        public async Task GetGroupId(string groupId)
-        {
-            await Clients.Groups(groupId).SendAsync("GetGroupId", groupId);
         }
     }
 }

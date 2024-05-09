@@ -20,7 +20,7 @@ builder.Services.AddDbContext<UserDbContext>(options =>
     options.LogTo(Console.WriteLine, LogLevel.Warning);
 });
 
-builder.Services.AddScoped<UserServices>();
+builder.Services.AddScoped<UserService>();
 builder.Services.AddSingleton<GameService>();
 builder.Services.AddSingleton<RoomService>();
 

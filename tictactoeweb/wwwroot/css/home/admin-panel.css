@@ -1,0 +1,112 @@
+﻿.d-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+body .main-container {
+    margin: 100px 70px;
+    background-color: #1F1F1F;
+    border-radius: 10px;
+    height: 100%;
+    padding: 10px;
+}
+
+    body .main-container .user-table {
+        margin: 50px 100px;
+    }
+
+        body .main-container .user-table table {
+            border-collapse: collapse;
+            color: white;
+            background-color: #3B3B3B;
+        }
+
+            body .main-container .user-table table td, th {
+                padding: 15px;
+                text-align: left;
+                border: 0.5px solid #2D2D2D;
+            }
+
+        body .main-container .user-table th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+
+.user-table tr:nth-child(even) {
+    background-color: #4C4C4C;
+}
+
+body .main-container .user-table table td a {
+    text-decoration: none;
+    text-align: center;
+    color: white
+}
+
+.delete-button {
+    color: white;
+    background-color: #7D1E1E;
+    border: 5px solid #7D1E1E;
+    border-radius: 5px;
+}
+
+input[type="submit"]:hover {
+    cursor:pointer;
+}
+
+.edit-button {
+    color: white;
+    background-color: #33631D;
+    border: 5px solid #33631D;
+    border-radius: 5px;
+}
+
+body .main-container .user-list-title {
+    margin: 50px 100px;
+}
+
+body .main-container .create {
+    margin: 50px 100px;
+}
+
+body .user-list-title p {
+    color: white;
+    font-size: 20px;
+    margin-left: 150px;
+}
+
+body .main-container .create .create-form form {
+    display: block;
+}
+
+    body .main-container .create .create-form form input[type="text"], input[type="password"] {
+        display: block;
+        margin: 10px 0;
+        background-color: #4C4C4C;
+        border: 5px solid #4C4C4C;
+        border-radius: 7px;
+        color: white;
+    }
+
+    body .main-container .create .create-form form input[type="submit"] {
+        background-color: #404040;
+        border: 5px solid #404040;
+        border-radius: 5px;
+        color: white
+    }
+
+        body .main-container .create .create-form form input[type="submit"]:hover {
+            background-color: #626262;
+            border: 5px solid #626262;
+            cursor: pointer;
+        }
+
+body .admin-create-title {
+    margin: 50px 100px;
+}
+
+    body .admin-create-title p {
+        color: white;
+        font-size: 20px;
+    }

@@ -1,0 +1,67 @@
+﻿@model tictactoeweb.Models.HomeModels.AdminPanelViewModel;
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/home/admin-panel.css">
+    <title>Admin Panel</title>
+</head>
+<body>
+    <div class="main-container d-flex">
+        <div class="user-list">
+            <div class="user-list-title">
+                <p>Admin panel</p>
+            </div>
+            <div class="user-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Username</th>
+                            <th>Password</th>
+                            <th>Role</th>
+                            <th>Games</th>
+                            <th>Wins</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model.UserList)
+                        {
+                            <tr>
+                                <td>@user.Id</td>
+                                <td>@user.Username</td>
+                                <td>@user.Password</td>
+                                <td>@user.RoleId</td>
+                                <td>@user.Games</td>
+                                <td>@user.Wins</td>
+                                <td><a class="edit-button" asp-controller="Home" asp-action="EditUser" asp-route-id="@user.Id">Edit</a></td>
+                                <td>
+                                    <form asp-controller="Home" asp-action="DeleteUser" method="post">
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <input type="submit" value="Delete" class="delete-button"/>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="create">
+            <div class="admin-create-title">
+                <p>Create Admin Account</p>
+            </div>
+            <div class="create-form">
+                <form asp-controller="Home" asp-action="CreateAdmin" method="post">
+                    <input type="text" placeholder="Name" asp-for="@Model.AdminCreate.Username">
+                    <input type="password" placeholder="Password" asp-for="@Model.AdminCreate.Password">
+                    <input type="password" placeholder="Confirm Password" asp-for="@Model.AdminCreate.PasswordConfirm">
+                    <input type="submit" value="Create Admin">
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -4,11 +4,15 @@
 <html>
     <head>
         <title>Main</title>
-    <link rel="stylesheet" href="~/css/index.css" />
+    <link rel="stylesheet" href="~/css/home/index.css" />
     </head>
     <body>
         <header class="head-container d-flex">
         <div class="log-buttons d-flex">
+            @if (Model.RoleId == 2)
+            {
+                <a asp-controller="Home" asp-action="AdminPanel">Admin Panel</a>
+            }
             <a asp-controller="Game" asp-action="Profile"><p>Username: @Model.Username</p></a>
             <a asp-controller="Authorization" asp-action="Logout">Logout</a>
             </div>
